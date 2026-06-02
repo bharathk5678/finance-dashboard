@@ -8,19 +8,19 @@ import { Activity } from 'lucide-react';
 function App() {
   return (
     <FinanceProvider>
-      <div className="container py-8">
-        <header className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/30">
-              <Activity className="text-white" size={28} />
+      <div className="container">
+        <header className="header">
+          <div className="header-left">
+            <div className="header-icon">
+              <Activity color="white" size={28} />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gradient">Genius Financial Dashboard</h1>
-              <p className="text-secondary mt-1">Smart tracking & intelligent advice for your money.</p>
+              <h1 className="header-title text-gradient">Genius Financial Dashboard</h1>
+              <p className="header-subtitle">Smart tracking &amp; intelligent advice for your money.</p>
             </div>
           </div>
           <div>
-            <span className="badge badge-success">Local Secure Mode</span>
+            <span className="badge badge-success">🔒 Local Secure Mode</span>
           </div>
         </header>
 
@@ -30,7 +30,7 @@ function App() {
           <AdviceEngine />
         </main>
         
-        <footer className="mt-12 text-center text-sm text-muted pb-8">
+        <footer className="footer">
           <p>Your data is stored securely and privately in your local browser storage.</p>
         </footer>
       </div>

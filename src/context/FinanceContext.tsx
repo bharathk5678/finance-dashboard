@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { FinancialData, IncomeSource, CreditCard, FixedExpense } from '../types';
+import { FinancialData, IncomeSource, CreditCardData, FixedExpense } from '../types';
 
 interface FinanceContextType {
   data: FinancialData;
   addIncome: (income: IncomeSource) => void;
   removeIncome: (id: string) => void;
-  addCard: (card: CreditCard) => void;
+  addCard: (card: CreditCardData) => void;
   removeCard: (id: string) => void;
   addExpense: (expense: FixedExpense) => void;
   removeExpense: (id: string) => void;
@@ -33,7 +33,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addIncome = (income: IncomeSource) => setData(prev => ({ ...prev, incomes: [...prev.incomes, income] }));
   const removeIncome = (id: string) => setData(prev => ({ ...prev, incomes: prev.incomes.filter(i => i.id !== id) }));
   
-  const addCard = (card: CreditCard) => setData(prev => ({ ...prev, creditCards: [...prev.creditCards, card] }));
+  const addCard = (card: CreditCardData) => setData(prev => ({ ...prev, creditCards: [...prev.creditCards, card] }));
   const removeCard = (id: string) => setData(prev => ({ ...prev, creditCards: prev.creditCards.filter(c => c.id !== id) }));
   
   const addExpense = (expense: FixedExpense) => setData(prev => ({ ...prev, expenses: [...prev.expenses, expense] }));

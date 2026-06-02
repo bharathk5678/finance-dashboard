@@ -4,7 +4,7 @@ export interface IncomeSource {
   amount: number;
 }
 
-export interface CreditCard {
+export interface CreditCardData {
   id: string;
   name: string;
   balance: number;
@@ -20,7 +20,7 @@ export interface FixedExpense {
 
 export interface FinancialData {
   incomes: IncomeSource[];
-  creditCards: CreditCard[];
+  creditCards: CreditCardData[];
   expenses: FixedExpense[];
 }
 

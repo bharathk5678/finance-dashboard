@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { Lightbulb, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Lightbulb, AlertTriangle, CheckCircle } from 'lucide-react';
 import { AdviceLog } from '../types';
 
 export const AdviceEngine: React.FC = () => {
@@ -21,17 +21,17 @@ export const AdviceEngine: React.FC = () => {
         title: 'No Income Recorded',
         message: 'You have expenses but no income. Please add your income sources to get an accurate cashflow analysis.'
       });
-      return logs; // Stop here if no income
+      return logs;
     }
 
     if (totalIncome === 0) {
-        logs.push({
-            id: 'empty',
-            type: 'info',
-            title: 'Welcome!',
-            message: 'Start by adding your income, credit cards, and fixed expenses above to receive smart financial advice.'
-        });
-        return logs;
+      logs.push({
+        id: 'empty',
+        type: 'info',
+        title: 'Welcome!',
+        message: 'Start by adding your income, credit cards, and fixed expenses above to receive smart financial advice.'
+      });
+      return logs;
     }
 
     // Cashflow Advice
@@ -68,15 +68,15 @@ export const AdviceEngine: React.FC = () => {
         logs.push({
           id: 'avalanche-method',
           type: 'info',
-          title: 'Smart Payoff Strategy (Avalanche)',
-          message: `Focus extra payments on your ${highestAprCard.name} card (${highestAprCard.apr}% APR) to minimize total interest paid. Pay the minimums on the rest.`
+          title: '🧠 Smart Payoff Strategy (Avalanche)',
+          message: `Focus extra payments on your "${highestAprCard.name}" card (${highestAprCard.apr}% APR) to minimize total interest paid. Pay the minimums on the rest.`
         });
         
         logs.push({
           id: 'snowball-method',
           type: 'info',
-          title: 'Motivation Strategy (Snowball)',
-          message: `Alternatively, pay off ${lowestBalanceCard.name} first ($${lowestBalanceCard.balance} balance) for a quick psychological win.`
+          title: '🎯 Motivation Strategy (Snowball)',
+          message: `Alternatively, pay off "${lowestBalanceCard.name}" first ($${lowestBalanceCard.balance.toLocaleString()} balance) for a quick psychological win.`
         });
       }
 
@@ -84,8 +84,19 @@ export const AdviceEngine: React.FC = () => {
         logs.push({
           id: 'high-apr',
           type: 'danger',
-          title: 'High Interest Warning',
-          message: `Your ${highestAprCard.name} has a very high APR of ${highestAprCard.apr}%. This debt is highly toxic. Prioritize clearing this balance or look into balance transfer cards.`
+          title: '🔥 High Interest Warning',
+          message: `Your "${highestAprCard.name}" has a very high APR of ${highestAprCard.apr}%. This debt is highly toxic. Prioritize clearing this balance or look into balance transfer cards.`
+        });
+      }
+
+      // Monthly interest cost
+      const monthlyInterest = data.creditCards.reduce((acc, card) => acc + (card.balance * (card.apr / 100) / 12), 0);
+      if (monthlyInterest > 50) {
+        logs.push({
+          id: 'interest-cost',
+          type: 'warning',
+          title: '💸 Interest Eating Your Money',
+          message: `You're paying approximately $${monthlyInterest.toFixed(2)} per month just in interest. That's $${(monthlyInterest * 12).toFixed(2)} per year going to banks instead of your pocket.`
         });
       }
     }
@@ -94,41 +105,42 @@ export const AdviceEngine: React.FC = () => {
   }, [data]);
 
   const getIcon = (type: string) => {
+    const style: React.CSSProperties = { marginTop: '2px', flexShrink: 0 };
     switch (type) {
-      case 'success': return <CheckCircle className="text-success mt-1 flex-shrink-0" size={20} />;
-      case 'warning': return <AlertTriangle className="text-warning mt-1 flex-shrink-0" size={20} />;
-      case 'danger': return <AlertTriangle className="text-danger mt-1 flex-shrink-0" size={20} />;
+      case 'success': return <CheckCircle color="#10B981" size={20} style={style} />;
+      case 'warning': return <AlertTriangle color="#F59E0B" size={20} style={style} />;
+      case 'danger': return <AlertTriangle color="#EF4444" size={20} style={style} />;
       case 'info':
-      default: return <Lightbulb className="text-primary mt-1 flex-shrink-0" size={20} />;
+      default: return <Lightbulb color="#6366F1" size={20} style={style} />;
     }
   };
 
   const getBorderClass = (type: string) => {
     switch (type) {
-      case 'success': return 'border-l-4 border-l-success';
-      case 'warning': return 'border-l-4 border-l-warning';
-      case 'danger': return 'border-l-4 border-l-danger';
+      case 'success': return 'border-success';
+      case 'warning': return 'border-warning';
+      case 'danger': return 'border-danger';
       case 'info':
-      default: return 'border-l-4 border-l-primary';
+      default: return 'border-info';
     }
   };
 
   return (
-    <div className="glass-panel p-6 mt-8">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-[rgba(99,102,241,0.2)] rounded-lg text-primary">
+    <div className="glass-panel advice-section">
+      <div className="advice-header">
+        <div className="advice-icon-wrap">
           <Lightbulb size={24} />
         </div>
-        <h2 className="text-2xl font-bold text-gradient">Smart Advice Engine</h2>
+        <h2 className="advice-title text-gradient">Smart Advice Engine</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="advice-grid">
         {advice.map((log) => (
-          <div key={log.id} className={`flex gap-4 p-4 bg-[rgba(0,0,0,0.2)] rounded-lg ${getBorderClass(log.type)}`}>
+          <div key={log.id} className={`advice-card ${getBorderClass(log.type)}`}>
             {getIcon(log.type)}
             <div>
-              <h4 className="font-semibold text-primary-text mb-1">{log.title}</h4>
-              <p className="text-sm text-secondary leading-relaxed">{log.message}</p>
+              <h4 className="advice-card-title">{log.title}</h4>
+              <p className="advice-card-message">{log.message}</p>
             </div>
           </div>
         ))}
