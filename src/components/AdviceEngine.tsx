@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { Lightbulb, AlertTriangle, CheckCircle } from 'lucide-react';
-import { AdviceLog } from '../types';
+import type { AdviceLog } from '../types';
 
 export const AdviceEngine: React.FC = () => {
   const { data } = useFinance();

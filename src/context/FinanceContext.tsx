@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { FinancialData, IncomeSource, CreditCardData, FixedExpense } from '../types';
+import type { FinancialData, IncomeSource, CreditCardData, FixedExpense } from '../types';
 
 interface FinanceContextType {
   data: FinancialData;
