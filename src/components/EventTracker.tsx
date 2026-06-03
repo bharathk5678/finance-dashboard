@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { FolderPlus, Plus, Trash2, ChevronDown, MapPin } from 'lucide-react';
+import { FolderPlus, Plus, Trash2, ChevronDown, MapPin, Pencil, Check, X } from 'lucide-react';
 
 const EMOJI_OPTIONS = [
   '✈️', '🏖️', '🎉', '🎂', '🏕️', '🚗', '🎄', '🎓',
@@ -8,7 +8,7 @@ const EMOJI_OPTIONS = [
 ];
 
 export const EventTracker: React.FC = () => {
-  const { data, addEventCategory, removeEventCategory, addEventExpense, removeEventExpense } = useFinance();
+  const { data, addEventCategory, updateEventCategory, removeEventCategory, addEventExpense, removeEventExpense } = useFinance();
 
   const [catName, setCatName] = useState('');
   const [catEmoji, setCatEmoji] = useState('✈️');
@@ -17,8 +17,35 @@ export const EventTracker: React.FC = () => {
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [expForms, setExpForms] = useState<Record<string, { desc: string; amount: string }>>({});
 
+  // Edit mode state: stores the editing values per category id
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editEmoji, setEditEmoji] = useState('');
+  const [editBudget, setEditBudget] = useState('');
+
   const toggleCard = (id: string) => {
     setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const startEditing = (cat: { id: string; name: string; emoji: string; budget: number }) => {
+    setEditingId(cat.id);
+    setEditName(cat.name);
+    setEditEmoji(cat.emoji);
+    setEditBudget(cat.budget > 0 ? cat.budget.toString() : '');
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+  };
+
+  const saveEditing = () => {
+    if (!editingId || !editName.trim()) return;
+    updateEventCategory(editingId, {
+      name: editName.trim(),
+      emoji: editEmoji,
+      budget: editBudget ? Number(editBudget) : 0
+    });
+    setEditingId(null);
   };
 
   const handleCreateCategory = (e: React.FormEvent) => {
@@ -128,31 +155,79 @@ export const EventTracker: React.FC = () => {
             const isOverBudget = cat.budget > 0 && totalSpent > cat.budget;
             const budgetPercent = cat.budget > 0 ? Math.min((totalSpent / cat.budget) * 100, 100) : 0;
             const form = getExpForm(cat.id);
+            const isEditing = editingId === cat.id;
 
             return (
               <div key={cat.id} className="event-card">
                 {/* Header */}
-                <div className="event-card-header" onClick={() => toggleCard(cat.id)}>
-                  <div className="event-card-header-left">
-                    <span className="event-card-emoji">{cat.emoji}</span>
-                    <div>
-                      <div className="event-card-name">{cat.name}</div>
-                      <div className="event-card-meta">
-                        {cat.expenses.length} expense{cat.expenses.length !== 1 ? 's' : ''}
-                        {cat.budget > 0 && ` · Budget: ${formatCurrency(cat.budget)}`}
-                      </div>
+                {isEditing ? (
+                  <div className="event-card-header" style={{ cursor: 'default' }}>
+                    <div className="edit-event-form">
+                      <select
+                        className="emoji-select"
+                        value={editEmoji}
+                        onChange={e => setEditEmoji(e.target.value)}
+                        style={{ width: '70px', flex: '0 0 70px', padding: '8px' }}
+                      >
+                        {EMOJI_OPTIONS.map(em => (
+                          <option key={em} value={em}>{em}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="text"
+                        className="input-field"
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        style={{ flex: 1, padding: '8px 12px', fontSize: '0.95rem' }}
+                        autoFocus
+                      />
+                      <input
+                        type="number"
+                        className="input-field"
+                        value={editBudget}
+                        onChange={e => setEditBudget(e.target.value)}
+                        placeholder="Budget"
+                        step="0.01"
+                        style={{ width: '110px', flex: '0 0 110px', padding: '8px 12px', fontSize: '0.85rem' }}
+                      />
+                      <button onClick={saveEditing} className="edit-action-btn save" title="Save">
+                        <Check size={16} />
+                      </button>
+                      <button onClick={cancelEditing} className="edit-action-btn cancel" title="Cancel">
+                        <X size={16} />
+                      </button>
                     </div>
                   </div>
-                  <div className="event-card-header-right">
-                    {cat.budget > 0 && (
-                      <span className={`budget-badge ${isOverBudget ? 'over' : 'under'}`}>
-                        {isOverBudget ? '⚠️ Over Budget' : '✅ Under Budget'}
-                      </span>
-                    )}
-                    <span className="event-card-total">{formatCurrency(totalSpent)}</span>
-                    <ChevronDown size={18} className={`expand-icon ${isExpanded ? 'expanded' : ''}`} />
+                ) : (
+                  <div className="event-card-header" onClick={() => toggleCard(cat.id)}>
+                    <div className="event-card-header-left">
+                      <span className="event-card-emoji">{cat.emoji}</span>
+                      <div>
+                        <div className="event-card-name">{cat.name}</div>
+                        <div className="event-card-meta">
+                          {cat.expenses.length} expense{cat.expenses.length !== 1 ? 's' : ''}
+                          {cat.budget > 0 && ` · Budget: ${formatCurrency(cat.budget)}`}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="event-card-header-right">
+                      <button
+                        className="edit-btn"
+                        onClick={(e) => { e.stopPropagation(); startEditing(cat); }}
+                        title="Edit event"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      {cat.budget > 0 && (
+                        <span className={`budget-badge ${isOverBudget ? 'over' : 'under'}`}>
+                          {isOverBudget ? '⚠️ Over Budget' : '✅ Under Budget'}
+                        </span>
+                      )}
+                      <span className="event-card-total">{formatCurrency(totalSpent)}</span>
+                      <ChevronDown size={18} className={`expand-icon ${isExpanded ? 'expanded' : ''}`} />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Expandable Body */}
                 <div className={`event-card-body ${isExpanded ? 'open' : ''}`}>

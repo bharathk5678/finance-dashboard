@@ -10,6 +10,7 @@ interface FinanceContextType {
   addExpense: (expense: FixedExpense) => void;
   removeExpense: (id: string) => void;
   addEventCategory: (category: EventCategory) => void;
+  updateEventCategory: (id: string, updates: Partial<Pick<EventCategory, 'name' | 'emoji' | 'budget'>>) => void;
   removeEventCategory: (id: string) => void;
   addEventExpense: (categoryId: string, expense: EventExpense) => void;
   removeEventExpense: (categoryId: string, expenseId: string) => void;
@@ -57,6 +58,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     eventCategories: [...prev.eventCategories, category]
   }));
 
+  const updateEventCategory = (id: string, updates: Partial<Pick<EventCategory, 'name' | 'emoji' | 'budget'>>) => setData(prev => ({
+    ...prev,
+    eventCategories: prev.eventCategories.map(cat =>
+      cat.id === id ? { ...cat, ...updates } : cat
+    )
+  }));
+
   const removeEventCategory = (id: string) => setData(prev => ({
     ...prev,
     eventCategories: prev.eventCategories.filter(c => c.id !== id)
@@ -81,7 +89,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   return (
     <FinanceContext.Provider value={{
       data, addIncome, removeIncome, addCard, removeCard, addExpense, removeExpense,
-      addEventCategory, removeEventCategory, addEventExpense, removeEventExpense, clearData
+      addEventCategory, updateEventCategory, removeEventCategory, addEventExpense, removeEventExpense, clearData
     }}>
       {children}
     </FinanceContext.Provider>
