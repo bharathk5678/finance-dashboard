@@ -10,16 +10,12 @@ const EMOJI_OPTIONS = [
 export const EventTracker: React.FC = () => {
   const { data, addEventCategory, removeEventCategory, addEventExpense, removeEventExpense } = useFinance();
 
-  // Create category form state
   const [catName, setCatName] = useState('');
   const [catEmoji, setCatEmoji] = useState('✈️');
   const [catBudget, setCatBudget] = useState('');
 
-  // Track which cards are expanded
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
-
-  // Per-category add-expense form state (keyed by category id)
-  const [expForms, setExpForms] = useState<Record<string, { desc: string; amount: string; date: string; status: string }>>({});
+  const [expForms, setExpForms] = useState<Record<string, { desc: string; amount: string }>>({});
 
   const toggleCard = (id: string) => {
     setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
@@ -42,7 +38,7 @@ export const EventTracker: React.FC = () => {
   };
 
   const getExpForm = (catId: string) => {
-    return expForms[catId] || { desc: '', amount: '', date: new Date().toISOString().split('T')[0], status: 'current' };
+    return expForms[catId] || { desc: '', amount: '' };
   };
 
   const updateExpForm = (catId: string, field: string, value: string) => {
@@ -60,21 +56,15 @@ export const EventTracker: React.FC = () => {
       id: Date.now().toString(),
       description: form.desc.trim(),
       amount: Number(form.amount),
-      date: form.date,
-      status: form.status as 'past' | 'current' | 'upcoming'
     });
     setExpForms(prev => ({
       ...prev,
-      [catId]: { desc: '', amount: '', date: new Date().toISOString().split('T')[0], status: 'current' }
+      [catId]: { desc: '', amount: '' }
     }));
   };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-  };
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   return (
@@ -134,9 +124,6 @@ export const EventTracker: React.FC = () => {
         <div className="event-categories-grid">
           {data.eventCategories.map(cat => {
             const totalSpent = cat.expenses.reduce((acc, exp) => acc + exp.amount, 0);
-            const pastTotal = cat.expenses.filter(e => e.status === 'past').reduce((a, e) => a + e.amount, 0);
-            const currentTotal = cat.expenses.filter(e => e.status === 'current').reduce((a, e) => a + e.amount, 0);
-            const upcomingTotal = cat.expenses.filter(e => e.status === 'upcoming').reduce((a, e) => a + e.amount, 0);
             const isExpanded = expandedCards[cat.id] || false;
             const isOverBudget = cat.budget > 0 && totalSpent > cat.budget;
             const budgetPercent = cat.budget > 0 ? Math.min((totalSpent / cat.budget) * 100, 100) : 0;
@@ -144,7 +131,7 @@ export const EventTracker: React.FC = () => {
 
             return (
               <div key={cat.id} className="event-card">
-                {/* Header (clickable to expand) */}
+                {/* Header */}
                 <div className="event-card-header" onClick={() => toggleCard(cat.id)}>
                   <div className="event-card-header-left">
                     <span className="event-card-emoji">{cat.emoji}</span>
@@ -186,35 +173,24 @@ export const EventTracker: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Status Summary */}
-                    <div className="status-summary">
-                      <div className="status-badge past">Past: {formatCurrency(pastTotal)}</div>
-                      <div className="status-badge current">Current: {formatCurrency(currentTotal)}</div>
-                      <div className="status-badge upcoming">Upcoming: {formatCurrency(upcomingTotal)}</div>
-                    </div>
-
                     {/* Expenses List */}
                     {cat.expenses.length > 0 && (
                       <div className="event-expenses-list">
-                        {cat.expenses
-                          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                          .map(exp => (
-                            <div key={exp.id} className="event-expense-row">
-                              <div className="event-expense-info">
-                                <div className={`event-expense-status-dot ${exp.status}`} />
-                                <div className="event-expense-details">
-                                  <span className="event-expense-desc">{exp.description}</span>
-                                  <span className="event-expense-date">{formatDate(exp.date)} · {exp.status}</span>
-                                </div>
-                              </div>
-                              <div className="event-expense-right">
-                                <span className="event-expense-amount">{formatCurrency(exp.amount)}</span>
-                                <button onClick={() => removeEventExpense(cat.id, exp.id)} className="delete-btn">
-                                  <Trash2 size={14} />
-                                </button>
+                        {cat.expenses.map(exp => (
+                          <div key={exp.id} className="event-expense-row">
+                            <div className="event-expense-info">
+                              <div className="event-expense-details">
+                                <span className="event-expense-desc">{exp.description}</span>
                               </div>
                             </div>
-                          ))}
+                            <div className="event-expense-right">
+                              <span className="event-expense-amount">{formatCurrency(exp.amount)}</span>
+                              <button onClick={() => removeEventExpense(cat.id, exp.id)} className="delete-btn">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
 
@@ -230,7 +206,7 @@ export const EventTracker: React.FC = () => {
                           placeholder="e.g. Flight tickets"
                         />
                       </div>
-                      <div className="input-group" style={{ maxWidth: '120px' }}>
+                      <div className="input-group" style={{ maxWidth: '140px' }}>
                         <label className="input-label">Amount ($)</label>
                         <input
                           type="number"
@@ -240,27 +216,6 @@ export const EventTracker: React.FC = () => {
                           placeholder="0.00"
                           step="0.01"
                         />
-                      </div>
-                      <div className="input-group" style={{ maxWidth: '150px' }}>
-                        <label className="input-label">Date</label>
-                        <input
-                          type="date"
-                          className="input-field"
-                          value={form.date}
-                          onChange={e => updateExpForm(cat.id, 'date', e.target.value)}
-                        />
-                      </div>
-                      <div className="input-group" style={{ maxWidth: '130px' }}>
-                        <label className="input-label">Status</label>
-                        <select
-                          className="emoji-select"
-                          value={form.status}
-                          onChange={e => updateExpForm(cat.id, 'status', e.target.value)}
-                        >
-                          <option value="past">Past</option>
-                          <option value="current">Current</option>
-                          <option value="upcoming">Upcoming</option>
-                        </select>
                       </div>
                       <button type="submit" className="btn btn-primary">
                         <Plus size={14} /> Add

@@ -22,8 +22,6 @@ export interface EventExpense {
   id: string;
   description: string;
   amount: number;
-  date: string;
-  status: 'past' | 'current' | 'upcoming';
 }
 
 export interface EventCategory {
