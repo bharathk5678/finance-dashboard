@@ -2,6 +2,7 @@ import React from 'react';
 import { FinanceProvider } from './context/FinanceContext';
 import { SummaryCards } from './components/SummaryCards';
 import { DataEntry } from './components/DataEntry';
+import { EventTracker } from './components/EventTracker';
 import { AdviceEngine } from './components/AdviceEngine';
 import { Activity } from 'lucide-react';
 
@@ -27,6 +28,7 @@ function App() {
         <main>
           <SummaryCards />
           <DataEntry />
+          <EventTracker />
           <AdviceEngine />
         </main>
         
